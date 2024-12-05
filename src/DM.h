@@ -23,7 +23,8 @@ public:
     bool isAvailable() const;
     bool hasVariable(var_id variable) const;
     site_id getSiteID() const;
-    const unordered_map<var_id, Variable>& getVariables() const;
+    unordered_map<var_id, Variable>& getVariables();
+    void setAvailable(bool flag);
 private:
     site_id siteID;
     SiteStatus status;

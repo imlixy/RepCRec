@@ -39,6 +39,7 @@ private:
     void abortTransaction(const tran_id tranID);
     void commitTransaction(const tran_id tranID);
     int findTransaction(const tran_id tranID);
+    vector<tran_id> getWAWConflict(const tran_id tranID);
 };
 
 #endif

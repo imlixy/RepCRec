@@ -66,7 +66,7 @@ bool SerializationGraph::detectCycle(
 
 vector<tran_id> SerializationGraph::traceCycle(
 	const tran_id start, const tran_id end, 
-	const unordered_map<tran_id, tran_id>& parent
+	unordered_map<tran_id, tran_id>& parent
 ) {
 	vector<tran_id> cyclePath;
 	cyclePath.push_back(end);
@@ -81,3 +81,8 @@ vector<tran_id> SerializationGraph::traceCycle(
 	reverse(cyclePath.begin(), cyclePath.end());
 	return cyclePath;
 }
+
+const unordered_map<tran_id, unordered_set<tran_id>>& SerializationGraph::getGraph() const {
+	return graph;	// Return the adjacent list of the graph
+}
+

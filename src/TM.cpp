@@ -1,24 +1,5 @@
 #include "TM.h"
 
-vector<string> split(const string& line, char delimiter) {
-    string str = line.substr(2, line.size() - 3);
-    vactor<string> tokens;
-    string token;
-    for (char ch : str) {
-        if (ch == delimiter) {
-            if (!token.empty())
-                tokens.push_back(token);
-            token.clear();
-        }
-        else
-            token += ch;
-    }
-    if (!token.empty()) {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
-
 TransactionManager::TransactionManager() {
     for (int i = 1; i <= SITE_NUM; ++i) {
         DataManager* dm = new DataManager(i);
@@ -28,7 +9,7 @@ TransactionManager::TransactionManager() {
 
 void TransactionManager::inputHandle(const string& inputs) {
     if (inputs.find("begin") == 0) {
-        vector<string> str = split(inputs, ',');
+        vector<string> str = split(inputs, ',', 5);
         if (str.size() != 1)
             cout << "Invalid input command: " << inputs << endl;
 
@@ -36,7 +17,7 @@ void TransactionManager::inputHandle(const string& inputs) {
         beginTransaction(tranID);
     }
     else if (inputs.find("R") != string::npos) {
-        vector<string> str = split(input, ',');
+        vector<string> str = split(inputs, ',', 1);
         if (str.size() != 2)
             cout << "Invalid input command: " << inputs << endl;
 
@@ -45,17 +26,17 @@ void TransactionManager::inputHandle(const string& inputs) {
         readTransaction(tranID, variable);
     }
     else if (inputs.find("W") != string::npos) {
-        vector<string> str = split(input, ',');
+        vector<string> str = split(inputs, ',', 1);
         if (str.size() != 3)
             cout << "Invalid input command: " << inputs << endl;
 
         int tranID = stoi(str[0].substr(1));
         var_id variable = stoi(str[1].substr(1));
-        int value = stoi(str[2].substr(1));
+        int value = stoi(str[2]);
         writeTransaction(tranID, variable, value);
     }
     else if (inputs.find("end") == 0) {
-        vector<string> str = split(inputs, ',');
+        vector<string> str = split(inputs, ',', 3);
         if (str.size() != 1)
             cout << "Invalid input command: " << inputs << endl;
 
@@ -63,19 +44,19 @@ void TransactionManager::inputHandle(const string& inputs) {
         endTransaction(tranID);
     }
     else if (inputs.find("fail") == 0) {
-        vector<string> str = split(inputs, ',');
+        vector<string> str = split(inputs, ',', 4);
         if (str.size() != 1)
             cout << "Invalid input command: " << inputs << endl;
 
-        int siteID = stoi(str[0].substr(1));
+        int siteID = stoi(str[0]);
         fail(siteID);
     }
     else if (inputs.find("recover") == 0) {
-        vector<string> str = split(inputs, ',');
+        vector<string> str = split(inputs, ',', 7);
         if (str.size() != 1)
             cout << "Invalid input command: " << inputs << endl;
 
-        int siteID = stoi(str[0].substr(1));
+        int siteID = stoi(str[0]);
         recover(siteID);
     }
     else if (inputs.find("dump") == 0)
@@ -122,12 +103,17 @@ void TransactionManager::readTransaction(const tran_id tranID, const var_id vari
                     if (otherID != tranID && otherTran.write.count(variable))
                         tranGraph.addDependency(otherID, tranID);
                 }
+                cout << "x" << variable << ": " << val << endl;
+                return;
             }
-            cout << "x" << variable << ": " << val << endl;
-            return;
+            else if (site->getSiteID() == target && val == -1) {     // is not replicated variable
+                cout << "x" << variable << ": " << val << endl;
+                return;
+            }
         }
     }
-    cout << "Read Error!" << endl;
+    //cout << "Read Error!" << endl;
+    t.status = tranStatus::aborted;
     return;
 }
 
@@ -172,20 +158,28 @@ void TransactionManager::endTransaction(tran_id tranID) {
     
     Transaction& t = transList[tranID];
     
-    // 1. abort directly
+    // abort directly
     if (t.status == tranStatus::aborted) {
         abortTransaction(tranID);
         return;
     }
 
-    // 2. If status is ¡°active¡±, check for conflicts
+
+    // If status is ¡°active¡±, check for conflicts
     if (t.status == tranStatus::active) {
         // has cycle
         if (!tranGraph.getCycle().empty()) {
             tran_id target = findTransaction(tranID);
 
             if (target != -1)
-                transList[target].status = tranStatus::aborted;
+                transList[target].status = tranStatus::aborted; 
+        }
+
+        // check WAW, first committer wins
+        vector<tran_id> conflicts = getWAWConflict(tranID);
+        if (!conflicts.empty()) {
+            for (tran_id c : conflicts)
+                transList[c].status = tranStatus::aborted;
         }
         commitTransaction(tranID);
     }
@@ -228,26 +222,50 @@ int TransactionManager::findTransaction(const tran_id tranID) {
         if (id != tranID)
             return id;
     }
-
     return -1;
 }
 
+vector<tran_id> TransactionManager::getWAWConflict(const tran_id tranID) {
+    vector<tran_id> conflict;
+
+    const auto& writeSet = transList[tranID].write;
+    for (const auto& [u, vSet] : tranGraph.getGraph()) {
+        for (tran_id v : vSet) {
+            if (u == tranID || v == tranID) {
+                const auto& other = (u == tranID) ? transList[v].write : transList[u].write;
+                for (const auto& [id, _] : writeSet) {
+                    if (other.count(id)) {
+                        conflict.push_back((u == tranID) ? v : u);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return conflict;
+}
+
 void TransactionManager::fail(site_id siteID) {
-    if (siteID < 1 || siteID > 10) {
-        cout << "Invalid site ID: " << siteID << endl;
+    if (siteID < 1 || siteID > SITE_NUM) {
+        cout << "Invalid site ID!" << endl;
         return;
     }
-    //siteStatus[siteID] = false;
-    //cout << "Site " << siteID << " failed." << endl;
+    
+    DataManager* site = sites[siteID];
+    if (!site->isAvailable()) {
+        cout << "Site" << siteID << " is already failed" << endl;
+        return;
+    }
+    site->setAvailable(false);
 }
 
 void TransactionManager::recover(site_id siteID) {
-    if (siteID < 1 || siteID > 10) {
-        cout << "Invalid site ID: " << siteID << endl;
+    if (siteID < 1 || siteID > SITE_NUM) {
+        cout << "Invalid site" << endl;
         return;
     }
-    //siteStatus[siteID] = true;
-    //cout << "Site " << siteID << " recovered." << endl;
+    
+    
 }
 
 void TransactionManager::dump() {
@@ -275,12 +293,5 @@ void TransactionManager::dump() {
 }
 
 void TransactionManager::queryState() {
-    cout << "Transaction Manager State:" << endl;
-    for (const auto& entry : transList) {
-        cout << "Transaction ID: " << entry.first << ", Status: " << entry.second.status << endl;
-    }
-    cout << "Site Status:" << endl;
-    for (const auto& entry : siteStatus) {
-        cout << "Site " << entry.first << ": " << (entry.second ? "Up" : "Down") << endl;
-    }
+    
 }

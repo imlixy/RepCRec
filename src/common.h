@@ -9,6 +9,10 @@
 #include <unordered_set>
 #include <map>
 #include <stack>
+#include <algorithm>
+#include <regex>
+
+using namespace std;
 
 #define SITE_NUM 10
 #define VAR_NUM 20
@@ -16,8 +20,9 @@ typedef int var_id;
 typedef int site_id;
 typedef int tran_id;
 
-using namespace std;
+extern double globalTime;
 
 double currentTime();
+vector<string> split(const string& line, char delimiter, int start);
 
 #endif

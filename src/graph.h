@@ -8,6 +8,7 @@ public:
 	void addDependency(const tran_id u, const tran_id v);
 	void removeTran(const tran_id tranID);
 	vector<int> getCycle();
+	const unordered_map<tran_id, unordered_set<tran_id>>& getGraph() const;
 
 private:
 	unordered_map<tran_id, unordered_set<tran_id>> graph;
@@ -21,7 +22,7 @@ private:
 	vector<tran_id> traceCycle(
 		const tran_id start,
 		const tran_id end,
-		const unordered_map<tran_id, tran_id>& parent
+		unordered_map<tran_id, tran_id>& parent
 	);
 };
 

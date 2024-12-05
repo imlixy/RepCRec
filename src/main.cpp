@@ -17,6 +17,7 @@ int main(int argc, char **argv) {
         }
         while (getline(testFile, line)) {
             tm->inputHandle(line);
+            globalTime += 0.1;
         }
         testFile.close();
     }
