@@ -17,7 +17,7 @@ public:
         double startTime;
         tranStatus status;
         unordered_set<var_id> read;
-        unordered_map<var_id, int> write;
+        unordered_map<var_id, pair<int, double>> write;
     };
 
     TransactionManager();

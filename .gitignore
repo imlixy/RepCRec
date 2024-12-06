@@ -16,7 +16,7 @@ Thumbs.db
 *.idb
 
 # Build directories
-/build/
+/out/build/
 /dist/
 
 # IDE and Editor Configuration
