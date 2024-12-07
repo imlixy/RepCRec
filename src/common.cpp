@@ -8,8 +8,9 @@ double currentTime() {
 }
 
 vector<string> split(const string& line, char delimiter, int start) {
-    string str = regex_replace(line, regex("^\\s+|\\s+$"), "");
-    str = line.substr(1 + start, str.size() - start - 2);
+    string str = regex_replace(line, regex("//.*"), "");    // remove the comment
+    str = regex_replace(str, regex("^\\s+|\\s+$"), "");     // remove space before and after
+    str = str.substr((1 + start), str.size() - start - 2);
     vector<string> tokens;
     string token;
     for (char ch : str) {

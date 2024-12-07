@@ -4,7 +4,7 @@
 #include "DM.h"
 #include "graph.h"
 
-enum tranStatus {
+enum TranStatus {
     active,
     committed,
     aborted
@@ -15,7 +15,7 @@ public:
     struct Transaction {
         tran_id tranID;
         double startTime;
-        tranStatus status;
+        TranStatus status;
         unordered_set<var_id> read;
         unordered_map<var_id, pair<int, double>> write;
     };
@@ -38,7 +38,6 @@ private:
 
     void abortTransaction(const tran_id tranID);
     void commitTransaction(const tran_id tranID);
-    int findTransaction(const tran_id tranID);
     vector<tran_id> getWAWConflict(const tran_id tranID);
 };
 

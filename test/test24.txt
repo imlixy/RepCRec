@@ -21,4 +21,4 @@ begin(T3)
 begin(T4)
 W(T4,x8,99)
 end(T4)                    
-R(T3,x8) 
+R(T3,x8)                              // T3 should still abort

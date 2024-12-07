@@ -44,7 +44,9 @@ int DataManager::read(const tran_id tranID, const var_id varID, const double sta
 		return -1;		// no suitable version
 	else if (it == var.versionHistory.end() || it->first > startTime)
 		--it;
-
+	if (it->first < status.failTime && startTime < status.failTime)
+		return -2;
+		
 	// for replicated variable, must wait for a commit after fail
 	if (varID % 2 == 0 && it->first < status.failTime)
 		return -1;

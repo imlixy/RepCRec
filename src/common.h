@@ -22,6 +22,11 @@ typedef int tran_id;
 
 extern double globalTime;
 
+enum Status {
+    commit,
+    running
+};
+
 double currentTime();
 vector<string> split(const string& line, char delimiter, int start);
 
