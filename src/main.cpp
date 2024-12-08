@@ -20,15 +20,15 @@
 #include "TransactionManager.h"
 #include "DataManager.h"
 
-TransactionManager *tm;
+TransactionManager *manager;
 
 int main(int argc, char **argv) {
-    tm = new TransactionManager();
+    manager = new TransactionManager();
 
 
     string line;
     if (argc > 1) {
-        string base = "../test/";
+        string base = "./test/";
         string path = base + argv[1];
         ifstream testFile(path);
         if (!testFile.is_open()) {
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
             return 1;
         }
         while (getline(testFile, line)) {
-            tm->inputHandle(line);
+            manager->inputHandle(line);
             globalTime += 0.1;
         }
         testFile.close();
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
         while (getline(cin, line)) {
             if (line.empty())
                 break;
-            tm->inputHandle(line);
+            manager->inputHandle(line);
             globalTime += 0.1;
         }
     }

@@ -48,7 +48,7 @@ DataManager::DataManager(site_id id) : siteID(id) {
 	}
 }
 
-pair<bool, int> DataManager::read(const tran_id tranID, const var_id varID, const double startTime) {
+pair<bool, int> DataManager::read(const var_id varID, const double startTime) {
 	if (variables.find(varID) == variables.end())
 		return { false, -1 };	// not exsist
 
@@ -59,9 +59,14 @@ pair<bool, int> DataManager::read(const tran_id tranID, const var_id varID, cons
 		return { false, -1 };		// no suitable version
 	else if (it == var.versionHistory.end() || it->first > startTime)
 		--it;
-	if (it->first < status.failTime && startTime < status.failTime)
-		return { false, it->second };
-		
+
+	if (it->first < status.failTime && startTime < status.failTime) {
+		if (status.available)
+			return { true, it->second };
+		else
+			return { false, it->second };
+	}
+
 	// for replicated variable, must wait for a commit after fail
 	if (varID % 2 == 0 && it->first < status.failTime)
 		return { false, -1 };

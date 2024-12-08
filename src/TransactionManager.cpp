@@ -113,36 +113,7 @@ void TransactionManager::readTransaction(const tran_id tranID, const var_id varI
     vector<site_id> wait;
     if (varID % 2 == 0) {   // is replicated variable
         for (DataManager* site : vector<DataManager*>(sites.begin() + 1, sites.end())) {
-            if (!site->isAvailable()) {
-                auto [flag, val] = site->read(tranID, varID, t.startTime);
-                if (!flag && val != -1) {
-                    wait.push_back(site->getSiteID());
-                    t.read.insert(varID);
-                }
-                continue;
-            }
-            if (site->hasVariable(varID)) {
-                auto [flag, val] = site->read(tranID, varID, t.startTime);
-                if (flag) {
-                    t.read.insert(varID);    // add into readSet
-
-                    // update graph
-                    for (const auto& [otherID, otherTran] : transList) {
-                        if (otherID != tranID && otherTran.write.count(varID))
-                            tranGraph.addDependency(tranID, otherID, SerializationGraph::RW);
-                    }
-                    cout << "x" << varID << ": " << val << endl;
-                    return;
-                }
-                
-            }
-        }
-    }
-    else {
-        site_id target = 1 + (varID % 10);
-        DataManager* site = sites[target];
-        if (site->isAvailable()) {
-            auto [flag, val] = site->read(tranID, varID, t.startTime);
+            auto [flag, val] = site->read(varID, t.startTime);
             if (flag) {
                 t.read.insert(varID);    // add into readSet
 
@@ -154,10 +125,32 @@ void TransactionManager::readTransaction(const tran_id tranID, const var_id varI
                 cout << "x" << varID << ": " << val << endl;
                 return;
             }
+            else {
+                if (val != -1) {
+                    wait.push_back(site->getSiteID());
+                    t.read.insert(varID);
+                }
+            }
+        }
+        
+    }
+    else {
+        site_id target = 1 + (varID % 10);
+        DataManager* site = sites[target];
+        auto [flag, val] = site->read(varID, t.startTime);
+        if (flag) {
+            t.read.insert(varID);    // add into readSet
+
+            // update graph
+            for (const auto& [otherID, otherTran] : transList) {
+                if (otherID != tranID && otherTran.write.count(varID))
+                    tranGraph.addDependency(tranID, otherID, SerializationGraph::RW);
+            }
+            cout << "x" << varID << ": " << val << endl;
+            return;
         }
         else {
-            auto [flag, val] = site->read(tranID, varID, t.startTime);
-            if (!flag && val != -1) {
+            if (val != -1) {
                 wait.push_back(site->getSiteID());
                 t.read.insert(varID);
             }
@@ -165,7 +158,7 @@ void TransactionManager::readTransaction(const tran_id tranID, const var_id varI
     }
     if (wait.empty()) {
         t.status = TranStatus::aborted;
-        // cout << "T" << tranID << " aborts" << endl;
+        abortTransaction(tranID);
     }
     else {  // should wait for recover
         for (site_id id : wait)
@@ -221,7 +214,7 @@ void TransactionManager::writeTransaction(tran_id tranID, const var_id varID, in
 
 void TransactionManager::endTransaction(tran_id tranID) {
     if (!transList.count(tranID)) {
-        cout << "Transaction " << tranID << " does not exist." << endl;
+        //cout << "Transaction " << tranID << " does not exist." << endl;
         return;
     }
     
@@ -287,17 +280,11 @@ void TransactionManager::abortTransaction(const tran_id tranID) {
     for (DataManager* site : vector<DataManager*>(sites.begin() + 1, sites.end())) {
         site->abortWrite(tranID);
     }
-    /*
-    for (const auto& [var, _] : t.write) {
-        for (DataManager* site : vector<DataManager*>(sites.begin() + 1, sites.end())) {
-            if (site->isAvailable() && site->hasVariable(var))
-                site->abortWrite(tranID, var);
-        }
-    }*/
     t.status = TranStatus::aborted;
     transList.erase(tranID);
     tranGraph.removeTran(tranID);
     cout << "T" << tranID << " aborts" << endl;
+    cout << endl;
 }
 
 void TransactionManager::commitTransaction(const tran_id tranID) {
@@ -314,6 +301,7 @@ void TransactionManager::commitTransaction(const tran_id tranID) {
     }
     t.status = TranStatus::committed;
     cout << "T" << tranID << " commits" << endl;
+    cout << endl;
 }
 
 vector<tran_id> TransactionManager::getWAWConflict(const tran_id tranID) {
@@ -358,6 +346,7 @@ void TransactionManager::recover(site_id siteID) {
     }
     
     DataManager* site = sites[siteID];
+    site->setAvailable(true);
     const auto targetSet = site->getVariables();
 
     for (auto& [tranID, tran] : transList) {
@@ -366,17 +355,20 @@ void TransactionManager::recover(site_id siteID) {
 
         for (var_id varID : tran.read) {
             if (site->hasVariable(varID)) {
-                auto [flag, val] = site->read(tranID, varID, tran.startTime);
-                if (!flag && val != -1) {
+                auto [flag, val] = site->read(varID, tran.startTime);
+                if (flag) {
                     cout << "T" << tranID << " unblocked" << endl;
                     cout << "x" << varID << ": " << val << endl;
+                    // update graph
+                    for (const auto& [otherID, otherTran] : transList) {
+                        if (otherID != tranID && otherTran.write.count(varID))
+                            tranGraph.addDependency(tranID, otherID, SerializationGraph::RW);
+                    }
                     tran.status = TranStatus::active;
                 }
             }
         }
     }
-
-    site->setAvailable(true);
     
     // debug
     // cout << "site" << siteID << " recover" << endl;
