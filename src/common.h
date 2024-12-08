@@ -1,3 +1,12 @@
+/*****************************************************************************
+ * Author:        Xinyu Li
+ * Created:       12-04-2024
+ * Last Edited:   12-05-2024
+ * Description:   [Brief description of the functionality defined in this file.
+ *                 For example, "This file declares the utility functions and
+ *                 data structures used for processing transactions."]
+ ****************************************************************************/
+
 #ifndef COMMON_H
 #define COMMON_H
 

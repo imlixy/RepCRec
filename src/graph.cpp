@@ -1,3 +1,15 @@
+/*****************************************************************************
+ * Author:        Xinyu Li
+ * Created:       12-03-2024
+ * Last Edited:   12-07-2024
+ * Description:   This file contains the implementation of functions for
+ *                managing and operating on a serialization graph.
+ *				  The graph is used to track transaction dependencies in a system
+ *				  and detect cycles to ensure consistency. The functions include
+ *                operations to add/remove nodes (transactions), add dependencies (edges),
+ *                detect cycles, and retrieve edge information.
+ ****************************************************************************/
+
 #include "common.h"
 #include "graph.h"
 

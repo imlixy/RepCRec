@@ -1,3 +1,14 @@
+/*****************************************************************************
+ * Author:        Xinyu Li
+ * Created:       12-03-2024
+ * Last Edited:   12-07-2024
+ * Description:   This header file defines the structure and operations of the
+ *                SerializationGraph class, which is used to model the dependency 
+ *				  graph for transactions. 
+ *				  The graph tracks nodes representing transactions and directed 
+ *				  edges representing dependencies between them.
+ ****************************************************************************/
+
 #ifndef GRAPH_H
 #define GRAPH_H
 #include "common.h"
