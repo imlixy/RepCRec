@@ -8,7 +8,7 @@ The `TransactionManager` receives inputs (transactions), processes commands, and
 
 Below is the architecture diagram:
 
-<img src="D:\Typora_result\Typora_image\image-20241208064809942.png" alt="image-20241208064809942" style="zoom:80%;" />
+<img src="/image/diagram.png" alt="image" width="700">
 
 ## Module Design
 
@@ -64,15 +64,15 @@ The data structure of each module is as follows, and there may be subsequent mod
 
 ### Transaction Manager
 
-<img src="D:\Typora_result\Typora_image\image-20241208071802244.png" alt="image-20241208071802244" style="zoom:67%;" />
+<img src="/image/TM.png" alt="image" width="400">
 
 ### Data Manager
 
-<img src="D:\Typora_result\Typora_image\image-20241208072204215.png" alt="image-20241208072204215" style="zoom:67%;" />
+<img src="/image/DM.png" alt="image" width="430">
 
 ### Serialization Graph
 
-<img src="D:\Typora_result\Typora_image\image-20241208072421737.png" alt="image-20241208072421737" style="zoom:55%;" />
+<img src="/image/graph.png" alt="image" width="240">
 
 ## Main Function
 
@@ -311,11 +311,11 @@ Here is the main functionality of the functions, along with their inputs and out
 4. `void abortWrite(const tran_id tranID)`
 
    - **Function**: Clears all cached writes for a transaction.
-      
+     
    > The function can be called by `abortTransaction` from Transaction Manager.
-      
+   
    - **Input** :
-      
+     
      - `tranID`: The ID of the transaction to abort.
      
    - **Output** : None.
@@ -327,11 +327,11 @@ Here is the main functionality of the functions, along with their inputs and out
 5. `void setAvailable(bool flag)`
 
    - **Function**: Sets the site's availability and updates failure/recovery times.
-      
+     
    > This function can be called by `fail` and `recover` from Transaction Manager.
-      
+   
    - **Input**:
-      
+     
      - `flag`: A boolean indicating whether the site is available.
      
    - **Output** : None.
@@ -355,11 +355,11 @@ Here is the main functionality of the functions, along with their inputs and out
       > This function can be called by `begin` from Transaction Manager.
       
    - **Input** :
-      
+     
      - `tranID`: A unique identifier for the transaction to be added.
      
    - **Output** :
-      
+     
      - None.
      
    - **Details**:
@@ -392,7 +392,7 @@ Here is the main functionality of the functions, along with their inputs and out
       > This function can be called by `abortTransaction` from Transaction Manager.
      
    - **Input** :
-      
+     
      - `tranID`: The ID of the transaction to remove.
      
    - **Output** :
@@ -432,7 +432,7 @@ Here is the main functionality of the functions, along with their inputs and out
      - `statusList`: A mapping of transaction IDs to their statuses.
 
    - **Output** :
-      
+     
      - `true` if a cycle is detected, `false` otherwise.
      
    - **Details**:
@@ -454,7 +454,7 @@ Here is the main functionality of the functions, along with their inputs and out
      - `statusList`: A mapping of transaction IDs to their statuses.
    
    - **Output** :
-      
+     
      - `true` if the cycle is valid, `false` otherwise.
      
    - **Details**:

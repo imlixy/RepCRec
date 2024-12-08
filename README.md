@@ -20,9 +20,9 @@ For more detailed design content, please refer to the [design document](https://
 ├── README.md           	# simple file guide how to build and run the project
 ```
 
-## Build
+# Build
 
-#### Prerequisites
+### Prerequisites
 
 To run this project, you will need the following:
 
@@ -31,7 +31,7 @@ To run this project, you will need the following:
 - A C++ compiler with C++17 support (e.g., **g++** >= 7.0)
 - Optional: **Reprozip** (if using packed execution)
 
-#### a. Automatically build and run
+## a. Automatically build and run
 
 A convenient script `build_and_run.sh` is provided to build the project, run all test cases in the `test/` directory, and save their outputs to the `out/` directory
 
@@ -47,7 +47,7 @@ A convenient script `build_and_run.sh` is provided to build the project, run all
    ./build_and_run.sh
    ```
 
-#### b. Using `CMake`
+## b. Using `CMake`
 
 1. **Build the project**:
 
@@ -74,7 +74,7 @@ A convenient script `build_and_run.sh` is provided to build the project, run all
      ./main
      ```
 
-#### c. Using `Reprozip`
+## c. Using `Reprozip`
 
 Reprozip allows you to run this project in a reproducible environment.
 
